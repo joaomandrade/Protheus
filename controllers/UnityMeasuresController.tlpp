@@ -1,0 +1,53 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+
+Namespace TotvsDevelopers.Demo.Controllers
+
+Using Namespace TotvsDevelopers.Demo.Services
+
+Class UnityMeasuresController From BaseController
+    Private Data oService
+
+    Public Method New() Constructor
+
+    @Get("/api/v1/unity-measure")
+    Public Method Get()
+
+    @Get("/api/v1/unity-measure/:id")
+    Public Method Show()
+
+EndClass
+
+Method New() Class UnityMeasuresController
+    _Super:New()
+Return
+
+Method Get() Class UnityMeasuresController
+    Local jQuery := oRest:GetQueryRequest()
+    Local jResult := Nil
+
+    Self:oService := UnityMeasureService():New()
+    jResult := Self:oService:GetPage(  if(!Empty(jQuery['page']),Val(jQuery['page']), nil),  if(!Empty(jQuery['pageSize']),Val(jQuery['pageSize']), nil) )
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result'] )
+    Else
+        oRest:SetFault( jResult['result']:Tojson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return
+
+Method Show() Class UnityMeasuresController
+    Local jPath := oRest:GetPathParamsRequest()
+    Local jResult := Nil
+
+    Self:oService := UnityMeasureService():New()
+    jResult := Self:oService:FindById( jPath['id'] )
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result']:ToJson() )
+    Else
+        oRest:SetFault( jResult['result']:ToJson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return

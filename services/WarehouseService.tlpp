@@ -1,0 +1,63 @@
+#Include 'tlpp-core.th'
+
+Namespace TotvsDevelopers.Demo.Services
+
+Using Namespace TotvsDevelopers.Demo.Adapters
+
+Class WarehouseService From BaseService
+    Private Data _oWarehouseAdapter
+
+	Public Method New()
+	Public Method GetPage( nCurrentPage As Numeric, nPageSize As Numeric )
+    Public Method FindById( cId As Character ) As Json
+EndClass
+
+Method New() CLASS WarehouseService
+	_Super:New()
+return
+
+Method GetPage( nCurrentPage As Numeric, nPageSize As Numeric ) Class WarehouseService
+    Local jResult  := JsonObject():New()
+
+    Default nCurrentPage := 1
+    Default nPageSize := 10
+
+    Self:_oWarehouseAdapter := WarehouseAdapter():New()
+    Self:_oWarehouseAdapter:BuildPage( nCurrentPage, nPageSize )
+
+    If ( Self:_oWarehouseAdapter:lOk )
+        jResult['success'] := .T.
+        jResult['result'] := Self:_oWarehouseAdapter:GetJSONResponse()
+    Else
+        jResult['success'] := .F.
+        jResult['result'] := JsonObject():New(0)
+        jResult['result']['code'] := Self:_oWarehouseAdapter:GetCode()
+        jResult['result']['message'] := "Erro ao consultar armazens"
+        jResult['result']['detailedMessage'] := Self:_oWarehouseAdapter:GetMessage()
+    EndIf
+Return jResult
+
+Method FindById( cId As Character ) As Json Class WarehouseService
+    Local aArea    := FWGetArea()
+    Local aAreaNNR := NNR->( FWGetArea() )
+    Local jResult  := JsonObject():New()
+
+    jResult['result'] := JsonObject():New()
+
+    DbSelectArea("NNR")
+    DbSetOrder( 1 )
+
+    If ( MsSeek( FWXFilial("NNR")+cId ) )
+        jResult['success'] := .T.
+        jResult['result']["id"] := AllTrim( NNR->NNR_CODIGO )
+        jResult['result']["description"] := AllTrim( NNR->NNR_DESCRI )
+    Else
+        jResult['success'] := .F.
+        jResult['result']['code'] := 404
+        jResult['result']['message'] := "Endereco nao encontrado"
+        jResult['result']['detailedMessage'] := "O endereco " + cId + " não foi encontrado"
+    EndIf
+
+    FWRestArea( aAreaNNR )
+    FWRestArea( aArea )
+Return jResult

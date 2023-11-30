@@ -1,0 +1,59 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+
+Namespace TotvsDevelopers.Demo.Controllers
+
+Using Namespace TotvsDevelopers.Demo.Services
+
+Class KindProductsController From BaseController
+    Private Data oService
+
+    Public Method New() Constructor
+
+    @Get("/api/v1/kind-products")
+    Public Method Get()
+
+    @Get("/api/v1/kind-products/:id")
+    Public Method Show()
+
+EndClass
+
+Method New() Class KindProductsController
+    _Super:New()
+Return
+
+Method Get() Class KindProductsController
+    Local jResponse := JsonObject():New()
+    Local nI As Numeric
+    Local aContent := FWGetSX5( "02" )
+
+    jResponse['items'] := {}
+    jResponse['hasNext'] := .F.
+
+    For nI := 1 To Len( aContent )
+        aAdd( jResponse['items'], {;
+            "id": AllTrim( aContent[nI][3] ),;
+            "description": AllTrim( aContent[nI][4] );
+        } )
+    Next nI
+
+    oRest:SetResponse( jResponse )
+Return
+
+Method Show() Class KindProductsController
+    Local jPath := oRest:GetPathParamsRequest()
+    Local jResult := JsonObject():New()
+    Local aContent := FWGetSX5( "02" )
+
+    Local nIndex := aScan( aContent, {|x| allTrim(x[3]) == AllTrim(jPath["id"])} )
+
+    If ( nIndex < 1 )
+        oRest:SetFault( "Nao encontrado" )
+        return oRest:SetStatusCode( 404 )
+    EndIf
+
+    jResult['id'] := AllTrim( aContent[nIndex][3] )
+    jResult['description'] := AllTrim( aContent[nIndex][4] )
+
+    oRest:SetResponse( jResult:ToJson() )
+Return

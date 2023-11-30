@@ -1,0 +1,111 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+
+Namespace TotvsDevelopers.Demo.Controllers
+
+Using Namespace TotvsDevelopers.Demo.Services
+
+Class ProductsController From BaseController
+    Private Data oService
+
+    Public Method New() Constructor
+
+    @Get("/api/v1/products")
+    Public Method Get()
+
+    @Get("/api/v1/products/:id")
+    Public Method Show()
+
+    @Post("/api/v1/products")
+    Public Method Save()
+
+    @Put("/api/v1/products/:id")
+    Public Method Update()
+
+    @Delete("/api/v1/products/:id")
+    Public Method Remove()
+EndClass
+
+Method New() Class ProductsController
+    _Super:New()
+Return
+
+Method Get() Class ProductsController
+    Local jQuery := oRest:GetQueryRequest()
+    Local jResult := Nil
+
+    Self:oService := ProductService():New()
+    jResult := Self:oService:GetPage(  if(!Empty(jQuery['page']),Val(jQuery['page']), nil),  if(!Empty(jQuery['pageSize']),Val(jQuery['pageSize']), nil) )
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result'] )
+    Else
+        oRest:SetFault( jResult['result']:Tojson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return
+
+Method Show() Class ProductsController
+    Local jPath := oRest:GetPathParamsRequest()
+    Local jResult := Nil
+
+    Self:oService := ProductService():New()
+    jResult := Self:oService:FindById( jPath['id'] )
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result']:ToJson() )
+    Else
+        oRest:SetFault( jResult['result']:ToJson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return
+
+Method Save() Class ProductsController
+    Local jbody := JsonObject():New()
+    Local jResult := Nil
+
+    jBody:FromJson( oRest:GetBodyRequest() )
+
+    Self:oService := ProductService():New()
+    jResult := Self:oService:SaveOrUpdate( jBody ) // Inclusao
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result']:ToJson() )
+    Else
+        oRest:SetFault( jResult['result']:ToJson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return
+
+Method Update() Class ProductsController
+    Local jbody := JsonObject():New()
+    Local jResult := Nil
+    Local jPath := oRest:GetPathParamsRequest()
+
+    jBody:FromJson( oRest:GetBodyRequest() )
+
+    Self:oService := ProductService():New()
+    jResult := Self:oService:SaveOrUpdate( jBody, jPath['id'] )
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result']:ToJson() )
+    Else
+        oRest:SetFault( jResult['result']:ToJson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return
+
+Method Remove() Class ProductsController
+    Local jPath := oRest:GetPathParamsRequest()
+    Local jResult := Nil
+
+    Self:oService := ProductService():New()
+    jResult := Self:oService:Remove( jPath["id"] ) // Alteracao
+
+    If ( jResult['success'] )
+        oRest:SetResponse( jResult['result']:ToJson() )
+    Else
+        oRest:SetFault( jResult['result']:ToJson() )
+        oRest:SetStatusCode( jResult['result']['code'] )
+    EndIf
+Return

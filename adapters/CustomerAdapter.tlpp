@@ -1,0 +1,48 @@
+#Include 'tlpp-core.th'
+
+Namespace TotvsDevelopers.Demo.Adapters
+
+Class CustomerAdapter From FWAdapterBaseV2
+  	Private Data _cQuery As Character
+
+	Public Method New()
+	Public Method BuildPage( nCurrentPage As Numeric, nPageSize As Numeric )
+  	Private Method _ConfigJsonResultSet()
+EndClass
+
+Method New() CLASS CustomerAdapter
+	_Super:New( 'GET', .T. )
+
+  	Self:_ConfigJsonResultSet()
+return
+
+Method BuildPage( nCurrentPage As Numeric, nPageSize As Numeric ) Class CustomerAdapter
+	Default nCurrentPage := 1
+	Default nPageSize := 10
+
+	Self:SetPage( nCurrentPage )
+	Self:SetPageSize( nPageSize )
+	Self:SetQuery( Self:_cQuery )
+	Self:SetWhere( "A1_FILIAL = '"+ FWxFilial('SA1') +"' AND SA1.D_E_L_E_T_ = ' '" )
+	Self:SetOrder( "A1_COD" )
+
+	If ( Self:Execute() )
+		Self:FillGetResponse()
+	EndIf
+Return
+
+Method _ConfigJsonResultSet() Class CustomerAdapter
+	Self:_cQuery := "SELECT #QueryFields# FROM " + RetSqlName( 'SA1' ) + " SA1 "
+  	Self:_cQuery += "WHERE #QueryWhere# "
+
+  	Self:AddMapFields( "id", "A1_COD"  , .T., .T., { "A1_COD", "C", TamSX3( "A1_COD" )[1], 0 } )
+	Self:AddMapFields( "branch", "A1_LOJA" , .T., .F., { "A1_LOJA", "C", TamSX3( "A1_LOJA" )[1], 0 } )
+	Self:AddMapFields( "company", "A1_NOME" , .T., .F., { "A1_NOME", "C", TamSX3( "A1_NOME" )[1], 0 } )	
+	Self:AddMapFields( "trade", "A1_NREDUZ" , .T., .F., { "A1_NREDUZ", "C", TamSX3( "A1_NREDUZ" )[1], 0 } )
+	Self:AddMapFields( "person_type", "A1_PESSOA" , .T., .F., { "A1_PESSOA", "C", TamSX3( "A1_PESSOA" )[1], 0 } )
+	Self:AddMapFields( "address", "A1_END" , .T., .F., { "A1_END", "C", TamSX3( "A1_END" )[1], 0 } )
+	Self:AddMapFields( "neighborhood", "A1_BAIRRO" , .T., .F., { "A1_BAIRRO", "C", TamSX3( "A1_BAIRRO" )[1], 0 } )	
+	Self:AddMapFields( "city", "A1_MUN" , .T., .F., { "A1_MUN", "C", TamSX3( "A1_MUN" )[1], 0 } )
+	Self:AddMapFields( "state", "A1_EST" , .T., .F., { "A1_EST", "C", TamSX3( "A1_EST" )[1], 0 } )
+	Self:AddMapFields( "zipcode", "A1_CEP" , .T., .F., { "A1_CEP", "C", TamSX3( "A1_CEP" )[1], 0 } )		
+Return
